@@ -23,23 +23,23 @@ public class DateScheduler {
         LocalDate windowEnd;
 
         if (dow == DayOfWeek.FRIDAY) {
-            // Friday → fetch Friday to Monday
+            // Friday: fetch Friday to Monday
             windowStart = today;
             windowEnd = today.plusDays(3);
         } else if (dow == DayOfWeek.SATURDAY) {
-            // Saturday → fetch today to Monday
+            // Saturday: fetch today to Monday
             windowStart = today;
             windowEnd = today.plusDays(2);
         } else if (dow == DayOfWeek.SUNDAY) {
-            // Sunday → fetch today to Monday
+            // Sunday: fetch today to Monday
             windowStart = today;
             windowEnd = today.plusDays(1);
         } else if (dow == DayOfWeek.MONDAY) {
-            // Monday → fetch only today
+            // Monday: fetch only today
             windowStart = today;
             windowEnd = today;
         } else {
-            // Tue, Wed, Thu → fetch next Friday to Monday
+            // Tue, Wed, Thu: fetch next Friday to Monday
             LocalDate nextFriday = today;
             while (nextFriday.getDayOfWeek() != DayOfWeek.FRIDAY) {
                 nextFriday = nextFriday.plusDays(1);
@@ -51,7 +51,7 @@ public class DateScheduler {
         // Current window
         result.add(new Pair(windowStart, windowEnd));
 
-        // Next week → always Friday to Monday, one week ahead of current window's Friday
+        // Next week: always Friday to Monday, one week ahead of current window's Friday
         LocalDate currentFriday = windowEnd.minusDays(
             windowEnd.getDayOfWeek() == DayOfWeek.MONDAY ? 3 :
             windowEnd.getDayOfWeek() == DayOfWeek.SUNDAY ? 2 :

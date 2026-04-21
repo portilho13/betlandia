@@ -3,11 +3,11 @@ package com.betlandia.match_ingestor.kafka;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.betlandia.match_ingestor.model.Match;
 
-@Component
+@Service
 public class MatchProducer {
 
     private static final Logger log = LoggerFactory.getLogger(MatchProducer.class);
