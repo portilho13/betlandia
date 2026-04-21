@@ -3,8 +3,8 @@ package com.betlandia.match_ingestor.util;
 import java.time.LocalDate;
 
 public class Pair {
-    private LocalDate friday;
-    private LocalDate monday;
+    private final LocalDate friday;
+    private final LocalDate monday;
 
     public Pair(LocalDate friday, LocalDate monday) {
         this.friday = friday;
