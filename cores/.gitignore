@@ -1,0 +1,27 @@
+# Spring Boot secrets (all services)
+**/application-dev.properties
+**/application-prod.properties
+**/application-local.properties
+
+# Maven
+**/target/
+
+# Java
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if you have a frontend)
+node_modules/
+.env
