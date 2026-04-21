@@ -6,8 +6,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "matches")
-public class Match {
+@Table(name = "fixtures")
+public class Fixture {
 
     @Id
     @GeneratedValue

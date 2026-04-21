@@ -15,7 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import com.betlandia.match_ingestor.model.Match;
+import com.betlandia.match_ingestor.model.Fixture;
 
 @Configuration
 public class KafkaConfig {
@@ -24,15 +24,31 @@ public class KafkaConfig {
     private String bootstrapServers;
 
     @Bean
-    public NewTopic matchesTopic() {
-        return TopicBuilder.name("matches-topic")
+    public NewTopic FixtureRegistery() {
+        return TopicBuilder.name("fixture-registry")
             .partitions(3)
             .replicas(1)
             .build();
     }
 
     @Bean
-    public ProducerFactory<String, Match> producerFactory() {
+    public NewTopic MatchStatus() {
+        return TopicBuilder.name("match-status")
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+
+    @Bean
+    public NewTopic MatchEvents() {
+        return TopicBuilder.name("match-events")
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+
+    @Bean
+    public ProducerFactory<String, Fixture> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -42,7 +58,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Match> kafkaTemplate() {
+    public KafkaTemplate<String, Fixture> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }

@@ -6,10 +6,10 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.betlandia.match_ingestor.model.Match;
+import com.betlandia.match_ingestor.model.Fixture;
 
 @Repository
-public interface MatchRepository extends JpaRepository<Match, UUID> {
+public interface FixtureRepository extends JpaRepository<Fixture, UUID> {
     boolean existsByMatchId(int matchId);
-    List<Match> findByStatus(String status);
+    List<Fixture> findByStatus(String status);
 }
