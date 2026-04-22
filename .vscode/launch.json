@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MatchIngestorApplication<match_ingestor>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.betlandia.matchingestor.MatchIngestorApplication",
+            "projectName": "match_ingestor",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
