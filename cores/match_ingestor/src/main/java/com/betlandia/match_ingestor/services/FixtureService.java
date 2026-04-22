@@ -12,6 +12,7 @@ import com.betlandia.match_ingestor.client.FootballApiClient;
 import com.betlandia.match_ingestor.dto.external.FootballApiResponseDto;
 import com.betlandia.match_ingestor.kafka.FixtureProducer;
 import com.betlandia.match_ingestor.model.Fixture;
+import com.betlandia.match_ingestor.model.FixtureStatus;
 import com.betlandia.match_ingestor.repository.FixtureRepository;
 import com.betlandia.match_ingestor.util.DateScheduler;
 import com.betlandia.match_ingestor.util.Pair;
@@ -55,7 +56,8 @@ public class FixtureService {
 
             Instant gameDate = Instant.parse(matchDto.utcDate());
             fixture.setGameDate(gameDate);
-            fixture.setStatus(matchDto.status());
+
+            fixture.setStatus(FixtureStatus.fromString(matchDto.status()));
             fixture.setMatchId(matchDto.id());
 
             Fixture saved = matchRepository.save(fixture);

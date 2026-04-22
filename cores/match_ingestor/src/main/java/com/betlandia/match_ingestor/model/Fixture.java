@@ -1,7 +1,6 @@
 package com.betlandia.match_ingestor.model;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -14,29 +13,21 @@ public class Fixture {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "home_team", length = 255)
+    @Column(name = "match_id", nullable = false, unique = true)
+    private Integer matchId;
+
+    @Column(name = "home_team", nullable = false, length = 255)
     private String homeTeam;
 
-    @Column(name = "away_team", length = 255)
+    @Column(name = "away_team", nullable = false, length = 255)
     private String awayTeam;
 
-    @Column(name = "game_date")
+    @Column(name = "game_date", nullable = false)
     private Instant gameDate;
 
-    @Column(name = "home_odd", precision = 5, scale = 2)
-    private BigDecimal homeOdd;
-
-    @Column(name = "away_odd", precision = 5, scale = 2)
-    private BigDecimal awayOdd;
-
-    @Column(name = "half_odd", precision = 5, scale = 2)
-    private BigDecimal halfOdd;
-
-    @Column(name = "created_at")
-    private Instant createdAt;
-
-    @Column(name = "status", length = 255)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private FixtureStatus status;
 
     @Column(name = "home_score")
     private Integer homeScore;
@@ -44,104 +35,49 @@ public class Fixture {
     @Column(name = "away_score")
     private Integer awayScore;
 
-    @Column(name = "match_id")
-    private Integer matchId;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = Instant.now();
+    }
 
     // Getters and Setters
 
-    public UUID getId() {
-        return id;
-    }
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+    public Integer getMatchId() { return matchId; }
+    public void setMatchId(Integer matchId) { this.matchId = matchId; }
 
-    public String getHomeTeam() {
-        return homeTeam;
-    }
+    public String getHomeTeam() { return homeTeam; }
+    public void setHomeTeam(String homeTeam) { this.homeTeam = homeTeam; }
 
-    public void setHomeTeam(String homeTeam) {
-        this.homeTeam = homeTeam;
-    }
+    public String getAwayTeam() { return awayTeam; }
+    public void setAwayTeam(String awayTeam) { this.awayTeam = awayTeam; }
 
-    public String getAwayTeam() {
-        return awayTeam;
-    }
+    public Instant getGameDate() { return gameDate; }
+    public void setGameDate(Instant gameDate) { this.gameDate = gameDate; }
 
-    public void setAwayTeam(String awayTeam) {
-        this.awayTeam = awayTeam;
-    }
+    public FixtureStatus getStatus() { return status; }
+    public void setStatus(FixtureStatus status) { this.status = status; }
 
-    public Instant getGameDate() {
-        return gameDate;
-    }
+    public Integer getHomeScore() { return homeScore; }
+    public void setHomeScore(Integer homeScore) { this.homeScore = homeScore; }
 
-    public void setGameDate(Instant gameDate) {
-        this.gameDate = gameDate;
-    }
+    public Integer getAwayScore() { return awayScore; }
+    public void setAwayScore(Integer awayScore) { this.awayScore = awayScore; }
 
-    public BigDecimal getHomeOdd() {
-        return homeOdd;
-    }
-
-    public void setHomeOdd(BigDecimal homeOdd) {
-        this.homeOdd = homeOdd;
-    }
-
-    public BigDecimal getAwayOdd() {
-        return awayOdd;
-    }
-
-    public void setAwayOdd(BigDecimal awayOdd) {
-        this.awayOdd = awayOdd;
-    }
-
-    public BigDecimal getHalfOdd() {
-        return halfOdd;
-    }
-
-    public void setHalfOdd(BigDecimal halfOdd) {
-        this.halfOdd = halfOdd;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Integer getHomeScore() {
-        return homeScore;
-    }
-
-    public void setHomeScore(Integer homeScore) {
-        this.homeScore = homeScore;
-    }
-
-    public Integer getAwayScore() {
-        return awayScore;
-    }
-
-    public void setAwayScore(Integer awayScore) {
-        this.awayScore = awayScore;
-    }
-
-    public Integer getMatchId() {
-        return matchId;
-    }
-
-    public void setMatchId(Integer matchId) {
-        this.matchId = matchId;
-    }
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
 }
