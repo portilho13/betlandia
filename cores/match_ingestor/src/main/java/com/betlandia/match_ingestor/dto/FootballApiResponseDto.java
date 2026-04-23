@@ -1,4 +1,4 @@
-package com.betlandia.match_ingestor.dto.external;
+package com.betlandia.match_ingestor.dto;
 
 import java.util.List;
 import java.util.Map;

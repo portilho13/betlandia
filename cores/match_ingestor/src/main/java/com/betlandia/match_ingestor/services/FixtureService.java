@@ -9,7 +9,7 @@ import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
 import org.springframework.stereotype.Service;
 
 import com.betlandia.match_ingestor.client.FootballApiClient;
-import com.betlandia.match_ingestor.dto.external.FootballApiResponseDto;
+import com.betlandia.match_ingestor.dto.FootballApiResponseDto;
 import com.betlandia.match_ingestor.kafka.FixtureProducer;
 import com.betlandia.match_ingestor.model.Fixture;
 import com.betlandia.match_ingestor.model.FixtureStatus;
