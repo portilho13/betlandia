@@ -1,13 +1,15 @@
 package com.betlandia.odds_calculator.client;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.betlandia.odds_calculator.dto.MatchHeadToHeadResponseDto;
 
-public class FootballApiClient {
+@Component
+public class OddsApiClient {
     private final RestClient restClient;
 
-    public FootballApiClient(RestClient restClient) {
+    public OddsApiClient(RestClient restClient) {
         this.restClient = restClient;
     }
 
