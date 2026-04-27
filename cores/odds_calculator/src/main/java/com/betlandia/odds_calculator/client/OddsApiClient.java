@@ -13,11 +13,9 @@ public class OddsApiClient {
         this.restClient = restClient;
     }
 
-    public MatchHeadToHeadResponseDto fetchHeadToHeadMatches() {
+    public MatchHeadToHeadResponseDto fetchHeadToHeadMatches(String matchId) {
         return restClient.get()
-            .uri(uri -> uri
-                .path("/matches/545975/head2head")
-                .build())
+            .uri("/matches/{matchId}/head2head", matchId)
             .retrieve()
             .body(MatchHeadToHeadResponseDto.class);
     }

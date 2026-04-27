@@ -1,4 +1,4 @@
-package com.betlandia.match_ingestor.services;
+package com.betlandia.match_ingestor.service;
 
 import java.time.Instant;
 import java.util.ArrayList;

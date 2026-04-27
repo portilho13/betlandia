@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.betlandia.match_ingestor.services.FixtureService;
+import com.betlandia.match_ingestor.service.FixtureService;
 import com.betlandia.match_ingestor.util.DateScheduler;
 import com.betlandia.match_ingestor.util.Pair;
 

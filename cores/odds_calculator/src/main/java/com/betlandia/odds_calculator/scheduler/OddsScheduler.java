@@ -17,6 +17,6 @@ public class OddsScheduler {
 
     @Scheduled(cron = "0 * * * * *")
     public void FetchPreMatchOdds() {
-        oddsService.populatePreMatchOdds();
+        oddsService.populatePreMatchOdds(545981);
     }
 }
