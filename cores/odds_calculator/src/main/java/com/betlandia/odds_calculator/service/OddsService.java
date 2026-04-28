@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.betlandia.odds_calculator.client.OddsApiClient;
 import com.betlandia.odds_calculator.dto.MatchHeadToHeadResponseDto;
 import com.betlandia.odds_calculator.dto.OddsDto;
+import com.betlandia.odds_calculator.kafka.OddsProducer;
 import com.betlandia.odds_calculator.model.MarketOdds;
 import com.betlandia.odds_calculator.model.OddsMarketType;
 import com.betlandia.odds_calculator.repository.OddsRepository;
@@ -20,16 +21,19 @@ public class OddsService {
     private static final Logger log = LoggerFactory.getLogger(OddsService.class);
     private final OddsApiClient oddsApiClient;
     private final OddsRepository oddsRepository;
+    private final OddsProducer oddsProducer;
 
 
     public OddsService(
         OddsCalculator oddsCalculator,
         OddsApiClient oddsApiClient,
-        OddsRepository oddsRepository
+        OddsRepository oddsRepository,
+        OddsProducer oddsProducer
     ) {
         this.oddsCalculator = oddsCalculator;
         this.oddsApiClient = oddsApiClient;
         this.oddsRepository = oddsRepository;
+        this.oddsProducer = oddsProducer;
     }
 
     public void populatePreMatchOdds(Integer matchId) {
@@ -55,7 +59,12 @@ public class OddsService {
         marketOdd.setDrawOdd(drawOdd);
         marketOdd.setAwayOdd(awayOdd);
 
-        MarketOdds saved = oddsRepository.save(marketOdd);
+        if (!oddsRepository.existsByFixtureId(matchId)) {
+            MarketOdds saved = oddsRepository.save(marketOdd);
+
+            oddsProducer.sendTopic(saved, "odds-updates");
+
+        }
         
         log.info("Home Team Odds: {} Draw Odd: {} Away Team Odd: {}", oddsDto.homeWin, oddsDto.draw, oddsDto.awayWin);
 

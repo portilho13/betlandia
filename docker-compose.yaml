@@ -55,7 +55,7 @@ services:
     build: ./cores/odds_calculator
     depends_on: [kafka, redis, cassandra]
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       REDIS_HOST: redis
 
   #bet-service:
