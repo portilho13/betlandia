@@ -30,7 +30,12 @@ public class FixtureScheduler {
         Pair currentWeek = dates.get(0); // current week in idx 0
         Pair nextWeek = dates.get(1); // next week in idx 1
 
-        matchService.ingestFromApi(currentWeek);
-        matchService.ingestFromApi(nextWeek);
+        matchService.fetchUpcommingMatches(currentWeek);
+        matchService.fetchUpcommingMatches(nextWeek);
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    public void FetchLiveMatches() {
+        matchService.fetchLiveMatch("5c14f78d-95d9-4684-a416-7845f18b82b5", false);
     }
 }

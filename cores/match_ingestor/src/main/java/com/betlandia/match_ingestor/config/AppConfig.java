@@ -11,6 +11,9 @@ public class AppConfig {
     @Value("${external.api.url}")
     private String apiUrl;
 
+    @Value("${external.api.mock_url}")
+    private String mockApiUrl;
+
     @Value("${external.api.key}")
     private String apiKey;
 
@@ -19,6 +22,13 @@ public class AppConfig {
         return RestClient.builder()
             .baseUrl(apiUrl)
             .defaultHeader("X-Auth-Token", apiKey)
+            .build();
+    }
+
+    @Bean
+    public RestClient mockRestClient() {
+        return RestClient.builder()
+            .baseUrl(mockApiUrl)
             .build();
     }
 }
