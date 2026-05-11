@@ -65,8 +65,5 @@ public class OddsService {
             oddsProducer.sendTopic(saved, "odds-updates");
 
         }
-        
-        log.info("Home Team Odds: {} Draw Odd: {} Away Team Odd: {}", oddsDto.homeWin, oddsDto.draw, oddsDto.awayWin);
-
     }
 }
