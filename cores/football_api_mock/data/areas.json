@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "name": "Portugal",
+    "code": "PRT",
+    "flag": null,
+    "parentAreaId": 2077,
+    "parentArea": "Europe"
+  }
+]

@@ -35,6 +35,11 @@ public class FixtureScheduler {
     }
 
     @Scheduled(cron = "0 * * * * *")
+    public void FetchStartingMatches() {
+        matchService.startMatches();
+    }
+
+    @Scheduled(cron = "0 * * * * *")
     public void FetchLiveMatches() {
         matchService.fetchLiveMatch("5c14f78d-95d9-4684-a416-7845f18b82b5", false);
     }

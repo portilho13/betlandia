@@ -2,6 +2,7 @@ package com.betlandia.match_ingestor.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -81,7 +82,7 @@ public class FixtureService {
     public void fetchLiveMatch(String matchId, boolean useMockClient) {
 
         Fixture match = matchRepository.findById(UUID.fromString(matchId))
-    .orElseThrow(() -> new EntityNotFoundException("Fixture not found: " + matchId));
+            .orElseThrow(() -> new EntityNotFoundException("Fixture not found: " + matchId));
 
         MatchDetailDto dto;
 
@@ -89,6 +90,56 @@ public class FixtureService {
             dto = mockFootballApiClient.fetchMatchDetails(match.getMatchId());
         } else {
             dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+        }
+    }
+
+    public void startMatches() {
+        List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.SCHEDULED);
+        for (Fixture match : fixtures) {
+            try {
+                MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+
+                if ("IN_PLAY".equals(dto.status())) {
+                    matchRepository.updateStatus(match.getMatchId(), FixtureStatus.IN_PLAY);
+                    log.info("Match {} is now IN_PLAY", match.getMatchId());
+                }
+
+            } catch (Exception e) {
+                if(Instant.now().isAfter(match.getGameDate())) {
+                    matchRepository.updateStatus(match.getMatchId(), FixtureStatus.IN_PLAY);
+                }
+            }
+        }
+    }
+
+    public void fetchGameEvents() {
+        List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.IN_PLAY);
+
+        for(Fixture match: fixtures) {
+            try {
+                MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+
+                int newHomeScore = dto.score().fullTime().home();
+                int newAwayScore = dto.score().fullTime().away();
+
+                boolean homeScored = newHomeScore > match.getHomeScore();
+                boolean awayScored = newAwayScore > match.getAwayScore();
+
+                if (homeScored || awayScored) {
+
+                    matchProducer.sendMatchEvent(match, newHomeScore, newAwayScore);
+
+                    match.setHomeScore(newHomeScore);
+                    match.setAwayScore(newAwayScore);
+                    matchRepository.save(match);
+
+                    log.info("Goal detected! Match {} score: {} - {}", 
+                        match.getMatchId(), newHomeScore, newAwayScore);
+                }
+
+            } catch (Exception e) {
+                log.error(e.toString());
+            }
         }
     }
 }
