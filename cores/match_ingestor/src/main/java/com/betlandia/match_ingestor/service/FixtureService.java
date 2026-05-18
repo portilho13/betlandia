@@ -11,7 +11,7 @@ import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
 import org.springframework.stereotype.Service;
 
 import com.betlandia.match_ingestor.client.FootballApiClient;
-import com.betlandia.match_ingestor.client.MockFootballApiClient;
+import com.betlandia.match_ingestor.client.MockApiClient;
 import com.betlandia.match_ingestor.dto.FootballApiResponseDto;
 import com.betlandia.match_ingestor.dto.external.MatchDetailDto;
 import com.betlandia.match_ingestor.kafka.FixtureProducer;
@@ -28,7 +28,7 @@ import jakarta.persistence.EntityNotFoundException;
 public class FixtureService {
 
     private final FootballApiClient footballApiClient;
-    private final MockFootballApiClient mockFootballApiClient;
+    private final MockApiClient mockApiClient;
 
     private final FixtureRepository matchRepository;
     private final FixtureProducer matchProducer;
@@ -37,22 +37,28 @@ public class FixtureService {
 
     public FixtureService(
         FootballApiClient footballApiClient,
-        MockFootballApiClient mockFootballApiClient,
+        MockApiClient mockApiClient,
         FixtureRepository matchRepository,
         FixtureProducer matchProducer
     ) {
         this.footballApiClient = footballApiClient;
-        this.mockFootballApiClient = mockFootballApiClient;
-
+        this.mockApiClient = mockApiClient;
+        
         this.matchRepository = matchRepository;
         this.matchProducer = matchProducer;
     }
     
-    public void fetchUpcommingMatches(Pair week) {
+    public void fetchUpcommingMatches(Pair week, boolean useMockApi) {
 
-        log.info("Ingesting match for dates", week.toString(), week.toString());
+        log.info("Ingesting match for dates: {} to {}", week.getFriday(), week.getMonday());
 
-        FootballApiResponseDto dto = footballApiClient.fetchMatches(week.getFriday(), week.getMonday());
+        FootballApiResponseDto dto;
+
+        if (useMockApi) {
+            dto = mockApiClient.fetchMatches(week.getFriday(), week.getMonday());
+        } else {
+            dto = footballApiClient.fetchMatches(week.getFriday(), week.getMonday());
+        }
 
         dto.matches().forEach(matchDto -> {
             if (matchRepository.existsByMatchId(matchDto.id())) {
@@ -84,20 +90,21 @@ public class FixtureService {
         Fixture match = matchRepository.findById(UUID.fromString(matchId))
             .orElseThrow(() -> new EntityNotFoundException("Fixture not found: " + matchId));
 
-        MatchDetailDto dto;
+        MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
 
-        if (useMockClient) {
-            dto = mockFootballApiClient.fetchMatchDetails(match.getMatchId());
-        } else {
-            dto = footballApiClient.fetchMatchDetails(match.getMatchId());
-        }
     }
 
-    public void startMatches() {
+    public void startMatches(boolean useMockApi) {
         List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.SCHEDULED);
         for (Fixture match : fixtures) {
             try {
-                MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+                MatchDetailDto dto;
+
+                if (useMockApi) {
+                    dto = mockApiClient.fetchMatchDetails(match.getMatchId());
+                } else {
+                    dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+                }
 
                 if ("IN_PLAY".equals(dto.status())) {
                     matchRepository.updateStatus(match.getMatchId(), FixtureStatus.IN_PLAY);

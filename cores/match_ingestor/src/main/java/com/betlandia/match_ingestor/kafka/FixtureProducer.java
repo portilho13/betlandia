@@ -14,15 +14,10 @@ public class FixtureProducer {
     private static final Logger log = LoggerFactory.getLogger(FixtureProducer.class);
     private static final String MATCH_EVENTS_TOPIC = "match-events";
 
-    private final KafkaTemplate<String, Fixture> kafkaTemplate;
-    private final KafkaTemplate<String, MatchEventDto> eventKafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public FixtureProducer(
-        KafkaTemplate<String, Fixture> kafkaTemplate,
-        KafkaTemplate<String, MatchEventDto> eventKafkaTemplate
-    ) {
+    public FixtureProducer(KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
-        this.eventKafkaTemplate = eventKafkaTemplate;
     }
 
     public void sendTopic(Fixture fixture, String topic) {
@@ -32,10 +27,7 @@ public class FixtureProducer {
                     log.error("Failed to send fixture {} to topic {}", fixture.getId(), topic, ex);
                 } else {
                     log.info("Sent fixture {} → topic {} partition {}",
-                        fixture.getId(),
-                        topic,
-                        result.getRecordMetadata().partition()
-                    );
+                        fixture.getId(), topic, result.getRecordMetadata().partition());
                 }
             });
     }
@@ -50,16 +42,13 @@ public class FixtureProducer {
             "GOAL"
         );
 
-        eventKafkaTemplate.send(MATCH_EVENTS_TOPIC, String.valueOf(fixture.getMatchId()), event)
+        kafkaTemplate.send(MATCH_EVENTS_TOPIC, String.valueOf(fixture.getMatchId()), event)
             .whenComplete((result, ex) -> {
                 if (ex != null) {
                     log.error("Failed to send match event for match {}", fixture.getMatchId(), ex);
                 } else {
                     log.info("Sent GOAL event for match {} → {} - {}",
-                        fixture.getMatchId(),
-                        homeScore,
-                        awayScore
-                    );
+                        fixture.getMatchId(), homeScore, awayScore);
                 }
             });
     }
