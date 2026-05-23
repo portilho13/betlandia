@@ -23,6 +23,8 @@ public class FixtureScheduler {
         this.dateScheduler = dateScheduler;
     }
 
+    /*
+
     @Scheduled(cron = "0/5 * * * * *")
     public void FetchUpcommingMatches() {
         ArrayList<Pair> dates = dateScheduler.getDateRange();
@@ -34,12 +36,23 @@ public class FixtureScheduler {
         matchService.fetchUpcommingMatches(nextWeek, true);
     }
 
+    */
+
+    @Scheduled(cron = "0/5 * * * * *")
+    public void FetchLiveEvents() {
+        matchService.fetchGameEvents(true);
+    }
+
     /*
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void FetchStartingMatches() {
-        matchService.startMatches();
+        matchService.startMatches(true);
     }
+
+    */
+
+    /*
 
     @Scheduled(cron = "0 * * * * *")
     public void FetchLiveMatches() {

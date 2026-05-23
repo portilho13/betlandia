@@ -6,6 +6,7 @@ import org.springframework.web.client.RestClient;
 
 import com.betlandia.match_ingestor.dto.FootballApiResponseDto;
 import com.betlandia.match_ingestor.dto.external.MatchDetailDto;
+import com.betlandia.match_ingestor.dto.external.MatchResponseDto;
 
 @Component
 public class MockApiClient {
@@ -27,9 +28,11 @@ public class MockApiClient {
     }
 
     public MatchDetailDto fetchMatchDetails(Integer id) {
-        return restClient.get()
+        MatchResponseDto response = restClient.get()
             .uri("/matches/{id}", id)
             .retrieve()
-            .body(MatchDetailDto.class);
+            .body(MatchResponseDto.class);
+
+        return response.match();
     }
 }

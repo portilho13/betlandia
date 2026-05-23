@@ -85,15 +85,6 @@ public class FixtureService {
         });
     }
 
-    public void fetchLiveMatch(String matchId, boolean useMockClient) {
-
-        Fixture match = matchRepository.findById(UUID.fromString(matchId))
-            .orElseThrow(() -> new EntityNotFoundException("Fixture not found: " + matchId));
-
-        MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
-
-    }
-
     public void startMatches(boolean useMockApi) {
         List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.SCHEDULED);
         for (Fixture match : fixtures) {
@@ -119,21 +110,31 @@ public class FixtureService {
         }
     }
 
-    public void fetchGameEvents() {
+    public void fetchGameEvents(boolean useMockApi) {
         List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.IN_PLAY);
 
         for(Fixture match: fixtures) {
             try {
-                MatchDetailDto dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+                MatchDetailDto dto;
+                
+                if (useMockApi) {
+                    dto = mockApiClient.fetchMatchDetails(match.getMatchId());
+                } else {
+                    dto = footballApiClient.fetchMatchDetails(match.getMatchId());
+                }
 
-                int newHomeScore = dto.score().fullTime().home();
-                int newAwayScore = dto.score().fullTime().away();
+                int newHomeScore = dto.score().fullTime().home() != null ? dto.score().fullTime().home() : 0;
+                int newAwayScore = dto.score().fullTime().away() != null ? dto.score().fullTime().away() : 0;
 
-                boolean homeScored = newHomeScore > match.getHomeScore();
-                boolean awayScored = newAwayScore > match.getAwayScore();
+                int homeScore = match.getHomeScore() != null ? match.getHomeScore() : 0;
+                int awayScore = match.getHomeScore() != null ? match.getHomeScore() : 0;
+
+                boolean homeScored = newHomeScore > homeScore;
+                boolean awayScored = newAwayScore > awayScore;
 
                 if (homeScored || awayScored) {
-
+                    
+                    log.info("New Event Detected: {}", dto.id());
                     matchProducer.sendMatchEvent(match, newHomeScore, newAwayScore);
 
                     match.setHomeScore(newHomeScore);
