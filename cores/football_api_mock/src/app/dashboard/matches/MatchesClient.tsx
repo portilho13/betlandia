@@ -45,6 +45,7 @@ export default function MatchesClient({
   const [, startTransition] = useTransition()
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [editMatch, setEditMatch] = useState<EnrichedMatch | null>(null)
   const [matches, setMatches] = useState(initialMatches)
   const [busy, setBusy] = useState(false)
 
@@ -226,15 +227,26 @@ export default function MatchesClient({
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{m.matchday}</td>
                     <td className="px-4 py-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          deleteMatch(m.id)
-                        }}
-                        className="text-gray-600 hover:text-red-400 text-xs transition-colors"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditMatch(m)
+                          }}
+                          className="text-gray-500 hover:text-blue-400 text-xs transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteMatch(m.id)
+                          }}
+                          className="text-gray-600 hover:text-red-400 text-xs transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -274,6 +286,33 @@ export default function MatchesClient({
               },
             ])
             setShowCreate(false)
+            refresh()
+          }}
+        />
+      )}
+
+      {/* Edit match modal */}
+      {editMatch && (
+        <EditMatchModal
+          match={editMatch}
+          teams={teams}
+          competitions={competitions}
+          onClose={() => setEditMatch(null)}
+          onSave={(updated) => {
+            setMatches((prev) =>
+              prev.map((m) =>
+                m.id === updated.id
+                  ? {
+                      ...updated,
+                      homeTeam: teams.find((t) => t.id === updated.homeTeamId) ?? m.homeTeam,
+                      awayTeam: teams.find((t) => t.id === updated.awayTeamId) ?? m.awayTeam,
+                      competition:
+                        competitions.find((c) => c.id === updated.competitionId) ?? m.competition,
+                    }
+                  : m,
+              ),
+            )
+            setEditMatch(null)
             refresh()
           }}
         />
@@ -548,11 +587,18 @@ function CreateMatchModal({
   onClose: () => void
   onCreate: (match: Match) => void
 }) {
+  const nowLocal = (() => {
+    const d = new Date()
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  })()
+
   const [form, setForm] = useState({
+    matchId: '',
     competitionId: competitions[0]?.id ?? 1,
     homeTeamId: teams[0]?.id ?? 1,
     awayTeamId: teams[1]?.id ?? 2,
-    utcDate: new Date().toISOString().slice(0, 16),
+    utcDate: nowLocal,
     matchday: 1,
     stage: 'REGULAR_SEASON',
     venue: '',
@@ -572,8 +618,13 @@ function CreateMatchModal({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...form,
+        ...(form.matchId ? { id: Number(form.matchId) } : {}),
+        competitionId: form.competitionId,
+        homeTeamId: form.homeTeamId,
+        awayTeamId: form.awayTeamId,
         utcDate: new Date(form.utcDate).toISOString(),
+        matchday: form.matchday,
+        stage: form.stage,
         venue: form.venue || null,
       }),
     })
@@ -602,6 +653,21 @@ function CreateMatchModal({
         </div>
 
         <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">
+              Match ID{' '}
+              <span className="text-gray-600">(optional — leave blank to auto-assign)</span>
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={form.matchId}
+              onChange={(e) => setForm((f) => ({ ...f, matchId: e.target.value }))}
+              placeholder="e.g. 500001"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500 placeholder-gray-600"
+            />
+          </div>
+
           <div>
             <label className="text-xs text-gray-400 block mb-1">Competition</label>
             <select
@@ -714,6 +780,210 @@ function CreateMatchModal({
               className="flex-1 bg-green-600 hover:bg-green-500 text-white text-sm py-2 rounded transition-colors font-medium disabled:opacity-50"
             >
               {busy ? 'Creating…' : 'Create Match'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function EditMatchModal({
+  match,
+  teams,
+  competitions,
+  onClose,
+  onSave,
+}: {
+  match: EnrichedMatch
+  teams: Team[]
+  competitions: Competition[]
+  onClose: () => void
+  onSave: (match: Match) => void
+}) {
+  const toLocalInput = (utcIso: string) => {
+    const d = new Date(utcIso)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  const [form, setForm] = useState({
+    competitionId: match.competitionId,
+    homeTeamId: match.homeTeamId,
+    awayTeamId: match.awayTeamId,
+    utcDate: toLocalInput(match.utcDate),
+    matchday: match.matchday,
+    stage: match.stage,
+    venue: match.venue ?? '',
+  })
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (form.homeTeamId === form.awayTeamId) {
+      setError('Home and away teams must be different')
+      return
+    }
+    setBusy(true)
+    setError('')
+    const res = await fetch(`/v4/matches/${match.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        competitionId: form.competitionId,
+        homeTeamId: form.homeTeamId,
+        awayTeamId: form.awayTeamId,
+        utcDate: new Date(form.utcDate).toISOString(),
+        matchday: form.matchday,
+        stage: form.stage,
+        venue: form.venue || null,
+      }),
+    })
+    setBusy(false)
+    if (res.ok) {
+      const data = await res.json()
+      // Merge raw db fields back so the parent state stays consistent
+      onSave({
+        ...match,
+        competitionId: form.competitionId,
+        homeTeamId: form.homeTeamId,
+        awayTeamId: form.awayTeamId,
+        utcDate: new Date(form.utcDate).toISOString(),
+        matchday: form.matchday,
+        stage: form.stage,
+        venue: form.venue || null,
+        lastUpdated: data.match?.lastUpdated ?? match.lastUpdated,
+      })
+    } else {
+      setError('Failed to save changes')
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-lg font-bold text-white">Edit Match</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">
+            ×
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mb-5">ID #{match.id}</p>
+
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Competition</label>
+            <select
+              value={form.competitionId}
+              onChange={(e) => setForm((f) => ({ ...f, competitionId: Number(e.target.value) }))}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+            >
+              {competitions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Home Team</label>
+              <select
+                value={form.homeTeamId}
+                onChange={(e) => setForm((f) => ({ ...f, homeTeamId: Number(e.target.value) }))}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+              >
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.shortName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Away Team</label>
+              <select
+                value={form.awayTeamId}
+                onChange={(e) => setForm((f) => ({ ...f, awayTeamId: Number(e.target.value) }))}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+              >
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.shortName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Date & Time (UTC)</label>
+            <input
+              type="datetime-local"
+              value={form.utcDate}
+              onChange={(e) => setForm((f) => ({ ...f, utcDate: e.target.value }))}
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Matchday</label>
+              <input
+                type="number"
+                min={1}
+                value={form.matchday}
+                onChange={(e) => setForm((f) => ({ ...f, matchday: Number(e.target.value) }))}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-400 block mb-1">Stage</label>
+              <select
+                value={form.stage}
+                onChange={(e) => setForm((f) => ({ ...f, stage: e.target.value }))}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+              >
+                {['REGULAR_SEASON', 'KNOCKOUT', 'QUARTER_FINALS', 'SEMI_FINALS', 'FINAL'].map(
+                  (s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Venue (optional)</label>
+            <input
+              type="text"
+              value={form.venue}
+              onChange={(e) => setForm((f) => ({ ...f, venue: e.target.value }))}
+              placeholder="Stadium name"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-green-500"
+            />
+          </div>
+
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-800 hover:bg-gray-700 text-white text-sm py-2 rounded transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded transition-colors font-medium disabled:opacity-50"
+            >
+              {busy ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
         </form>

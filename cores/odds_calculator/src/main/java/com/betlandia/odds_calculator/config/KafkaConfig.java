@@ -19,6 +19,7 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import com.betlandia.odds_calculator.dto.MatchEventDto;
 import com.betlandia.odds_calculator.model.Fixture;
 
 import java.util.HashMap;
@@ -39,8 +40,10 @@ public class KafkaConfig {
             .build();
     }
 
+    // Fixture consumer
+
     @Bean
-    public ConsumerFactory<String, Fixture> consumerFactory() {
+    public ConsumerFactory<String, Fixture> fixtureConsumerFactory() {
         JsonDeserializer<Fixture> deserializer = new JsonDeserializer<>(Fixture.class);
         deserializer.addTrustedPackages("*");
         deserializer.setUseTypeHeaders(false);
@@ -55,12 +58,39 @@ public class KafkaConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Fixture> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Fixture> consumerFactory) {
+            ConsumerFactory<String, Fixture> fixtureConsumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, Fixture> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory);
+        factory.setConsumerFactory(fixtureConsumerFactory);
         return factory;
     }
+
+    // MatchEventDto consumer
+
+    @Bean
+    public ConsumerFactory<String, MatchEventDto> matchEventConsumerFactory() {
+        JsonDeserializer<MatchEventDto> deserializer = new JsonDeserializer<>(MatchEventDto.class);
+        deserializer.addTrustedPackages("*");
+        deserializer.setUseTypeHeaders(false);
+
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "odds-calculator");
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, MatchEventDto> matchEventListenerContainerFactory(
+            ConsumerFactory<String, MatchEventDto> matchEventConsumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, MatchEventDto> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(matchEventConsumerFactory);
+        return factory;
+    }
+
+    // Producer
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {

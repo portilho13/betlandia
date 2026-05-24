@@ -127,7 +127,7 @@ public class FixtureService {
                 int newAwayScore = dto.score().fullTime().away() != null ? dto.score().fullTime().away() : 0;
 
                 int homeScore = match.getHomeScore() != null ? match.getHomeScore() : 0;
-                int awayScore = match.getHomeScore() != null ? match.getHomeScore() : 0;
+                int awayScore = match.getAwayScore() != null ? match.getAwayScore() : 0;
 
                 boolean homeScored = newHomeScore > homeScore;
                 boolean awayScored = newAwayScore > awayScore;

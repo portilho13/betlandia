@@ -172,10 +172,12 @@ export const db = {
         matches = matches.filter((m) => m.competitionId === comp.id)
       }
       if (params.dateFrom) {
-        matches = matches.filter((m) => m.utcDate >= params.dateFrom!)
+        const from = new Date(params.dateFrom + 'T00:00:00Z').getTime()
+        matches = matches.filter((m) => new Date(m.utcDate).getTime() >= from)
       }
       if (params.dateTo) {
-        matches = matches.filter((m) => m.utcDate <= params.dateTo! + 'T23:59:59Z')
+        const to = new Date(params.dateTo + 'T23:59:59Z').getTime()
+        matches = matches.filter((m) => new Date(m.utcDate).getTime() <= to)
       }
       if (params.status) {
         matches = matches.filter((m) => m.status === params.status)
@@ -186,9 +188,16 @@ export const db = {
 
       return matches
     },
-    create: (data: Omit<Match, 'id'>): Match => {
+    create: (data: Omit<Match, 'id'> & { id?: number }): Match => {
       const items = read<Match>('matches.json')
-      const item: Match = { ...data, id: nextId(items) }
+      const customId = data.id
+      const id =
+        customId !== undefined && !items.find((m) => m.id === customId)
+          ? customId
+          : nextId(items)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _drop, ...rest } = data as typeof data & { id?: number }
+      const item: Match = { ...rest, id } as Match
       write('matches.json', [...items, item])
       return item
     },

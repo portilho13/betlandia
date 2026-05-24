@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
+import com.betlandia.odds_calculator.dto.MatchEventDto;
 import com.betlandia.odds_calculator.model.Fixture;
 import com.betlandia.odds_calculator.service.OddsService;
 
@@ -25,9 +26,10 @@ public class FixtureConsumer {
 
     @KafkaListener(
         topics = "fixture-registry",
-        groupId = "odds-calculator"
+        groupId = "odds-calculator",
+        containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(
+    public void consumeScheduledMatches(
         @Payload Fixture fixture,
         @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
         @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
@@ -38,5 +40,17 @@ public class FixtureConsumer {
 
             oddsService.populatePreMatchOdds(fixture.getMatchId());
         
+    }
+
+    @KafkaListener(
+        topics = "match-events",
+        groupId = "odds-calculator",
+        containerFactory = "matchEventListenerContainerFactory"
+    )
+    public void consumeMatchEvents(
+        @Payload MatchEventDto matchEventDto
+    ) {
+        log.info("Received match event for {} - {}", matchEventDto.homeTeam(), matchEventDto.awayTeam());
+        oddsService.recalculateOdds(matchEventDto);
     }
 }

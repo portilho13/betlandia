@@ -31,12 +31,14 @@ export async function POST(request: Request) {
     : db.seasons.findByCompetition(competition.id)[0]
 
   const match = db.matches.create({
+    ...(body.id !== undefined ? { id: Number(body.id) } : {}),
     competitionId: competition.id,
     seasonId: season?.id ?? 1,
     areaId: competition.areaId,
     utcDate: body.utcDate,
     status: body.status ?? 'SCHEDULED',
     minute: null,
+    injuryTime: null,
     attendance: null,
     venue: body.venue ?? null,
     matchday: body.matchday ?? 1,
@@ -47,8 +49,10 @@ export async function POST(request: Request) {
     awayTeamId: body.awayTeamId,
     score: body.score ?? defaultScore(),
     goals: [],
+    penalties: [],
     bookings: [],
     substitutions: [],
+    odds: { homeWin: null, draw: null, awayWin: null },
     referees: [],
   })
 

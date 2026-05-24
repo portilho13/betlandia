@@ -28,12 +28,14 @@ export function buildMatchDto(match: Match) {
           endDate: season.endDate,
           currentMatchday: season.currentMatchday,
           winner: season.winner,
+          stages: ['REGULAR_SEASON'],
         }
       : null,
     id: match.id,
     utcDate: match.utcDate,
     status: match.status,
-    minute: match.minute,
+    minute: match.minute != null ? String(match.minute) : null,
+    injuryTime: match.injuryTime ?? null,
     attendance: match.attendance,
     venue: match.venue,
     matchday: match.matchday,
@@ -47,6 +49,11 @@ export function buildMatchDto(match: Match) {
           shortName: homeTeam.shortName,
           tla: homeTeam.tla,
           crest: homeTeam.crest,
+          coach: { id: null, name: null, nationality: null },
+          leagueRank: null,
+          formation: null,
+          lineup: [],
+          bench: [],
         }
       : null,
     awayTeam: awayTeam
@@ -56,12 +63,19 @@ export function buildMatchDto(match: Match) {
           shortName: awayTeam.shortName,
           tla: awayTeam.tla,
           crest: awayTeam.crest,
+          coach: { id: null, name: null, nationality: null },
+          leagueRank: null,
+          formation: null,
+          lineup: [],
+          bench: [],
         }
       : null,
     score: match.score,
     goals: match.goals ?? [],
+    penalties: match.penalties ?? [],
     bookings: match.bookings ?? [],
     substitutions: match.substitutions ?? [],
+    odds: match.odds ?? { homeWin: null, draw: null, awayWin: null },
     referees: match.referees ?? [],
   }
 }

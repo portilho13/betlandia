@@ -75,6 +75,19 @@ export interface Goal {
   team: { id: number; name: string }
   scorer: { id: number; name: string } | null
   assist: { id: number; name: string } | null
+  score: { home: number; away: number }
+}
+
+export interface Penalty {
+  player: { id: number | null; name: string }
+  team: { id: number; name: string }
+  scored: boolean
+}
+
+export interface Odds {
+  homeWin: number | null
+  draw: number | null
+  awayWin: number | null
 }
 
 export interface Booking {
@@ -106,6 +119,7 @@ export interface Match {
   utcDate: string
   status: string
   minute: number | null
+  injuryTime: number | null
   attendance: number | null
   venue: string | null
   matchday: number
@@ -116,8 +130,10 @@ export interface Match {
   awayTeamId: number
   score: Score
   goals: Goal[]
+  penalties: Penalty[]
   bookings: Booking[]
   substitutions: Substitution[]
+  odds: Odds
   referees: Referee[]
 }
 
