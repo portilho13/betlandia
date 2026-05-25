@@ -58,13 +58,12 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       REDIS_HOST: redis
 
-  #bet-service:
-    #build: ./bet-service
-    #depends_on: [kafka, redis, postgres]
-    #environment:
-      #KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      #REDIS_HOST: redis
-      #SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/betlandia
+  bet-service:
+    build: ./bet-service
+    depends_on: [kafka, redis, postgres]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      REDIS_HOST: redis
 
   #api-gateway:
     #build: ./api-gateway
