@@ -23,7 +23,6 @@ public class FixtureScheduler {
         this.dateScheduler = dateScheduler;
     }
 
-    /*
 
     @Scheduled(cron = "0/5 * * * * *")
     public void FetchUpcommingMatches() {
@@ -36,7 +35,6 @@ public class FixtureScheduler {
         matchService.fetchUpcommingMatches(nextWeek, true);
     }
 
-    */
 
     @Scheduled(cron = "0/5 * * * * *")
     public void FetchLiveEvents() {
