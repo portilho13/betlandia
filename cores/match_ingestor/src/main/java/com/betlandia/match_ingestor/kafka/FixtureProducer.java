@@ -6,13 +6,18 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.betlandia.match_ingestor.dto.MatchEventDto;
+import com.betlandia.match_ingestor.dto.MatchStatusEvent;
 import com.betlandia.match_ingestor.model.Fixture;
+import com.betlandia.match_ingestor.model.FixtureStatus;
+
+import java.time.Instant;
 
 @Service
 public class FixtureProducer {
 
     private static final Logger log = LoggerFactory.getLogger(FixtureProducer.class);
     private static final String MATCH_EVENTS_TOPIC = "match-events";
+    private static final String MATCH_STATUS_TOPIC = "match-status";
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -28,6 +33,28 @@ public class FixtureProducer {
                 } else {
                     log.info("Sent fixture {} → topic {} partition {}",
                         fixture.getId(), topic, result.getRecordMetadata().partition());
+                }
+            });
+    }
+
+    public void sendMatchStatusEvent(Fixture fixture, FixtureStatus oldStatus, FixtureStatus newStatus) {
+        MatchStatusEvent event = new MatchStatusEvent(
+            fixture.getMatchId(),
+            fixture.getHomeTeam(),
+            fixture.getAwayTeam(),
+            oldStatus.name(),
+            newStatus.name(),
+            fixture.getHomeScore() != null ? fixture.getHomeScore() : 0,
+            fixture.getAwayScore() != null ? fixture.getAwayScore() : 0,
+            Instant.now()
+        );
+
+        kafkaTemplate.send(MATCH_STATUS_TOPIC, String.valueOf(fixture.getMatchId()), event)
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to send match status event for match {}", fixture.getMatchId(), ex);
+                } else {
+                    log.info("Sent status change {} → {} for match {}", oldStatus, newStatus, fixture.getMatchId());
                 }
             });
     }

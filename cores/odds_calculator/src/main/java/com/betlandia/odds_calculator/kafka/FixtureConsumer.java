@@ -12,7 +12,6 @@ import com.betlandia.odds_calculator.dto.MatchEventDto;
 import com.betlandia.odds_calculator.model.Fixture;
 import com.betlandia.odds_calculator.service.OddsService;
 
-
 @Service
 public class FixtureConsumer {
 
@@ -37,9 +36,7 @@ public class FixtureConsumer {
     ) {
         log.info("Received fixture {} from topic={} partition={} offset={}",
             fixture.getId(), topic, partition, offset);
-
-            oddsService.populatePreMatchOdds(fixture.getMatchId());
-        
+        oddsService.populatePreMatchOdds(fixture);
     }
 
     @KafkaListener(
@@ -47,10 +44,8 @@ public class FixtureConsumer {
         groupId = "odds-calculator",
         containerFactory = "matchEventListenerContainerFactory"
     )
-    public void consumeMatchEvents(
-        @Payload MatchEventDto matchEventDto
-    ) {
-        log.info("Received match event for {} - {}", matchEventDto.homeTeam(), matchEventDto.awayTeam());
+    public void consumeMatchEvents(@Payload MatchEventDto matchEventDto) {
+        log.info("Received match event for {} vs {}", matchEventDto.homeTeam(), matchEventDto.awayTeam());
         oddsService.recalculateOdds(matchEventDto);
     }
 }

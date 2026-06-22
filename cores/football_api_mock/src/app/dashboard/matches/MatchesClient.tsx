@@ -174,6 +174,7 @@ export default function MatchesClient({
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-gray-900 border-b border-gray-800">
                 <tr className="text-xs text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-4 py-3 font-medium">ID</th>
                   <th className="text-left px-4 py-3 font-medium">Match</th>
                   <th className="text-center px-4 py-3 font-medium">Score</th>
                   <th className="text-center px-4 py-3 font-medium">Status</th>
@@ -191,6 +192,7 @@ export default function MatchesClient({
                       selectedId === m.id ? 'bg-green-950/30' : 'hover:bg-gray-900/50'
                     }`}
                   >
+                    <td className="px-4 py-3 text-gray-400 text-xs font-mono">{m.id}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2 font-medium text-white">
                         <span>{m.homeTeam?.shortName ?? `Team #${m.homeTeamId}`}</span>
@@ -863,15 +865,24 @@ function EditMatchModal({
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-white">Edit Match</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">
             ×
           </button>
         </div>
-        <p className="text-xs text-gray-500 mb-5">ID #{match.id}</p>
 
         <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Match ID</label>
+            <input
+              type="text"
+              value={match.id}
+              readOnly
+              className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-gray-300 text-sm font-mono cursor-not-allowed"
+            />
+          </div>
+
           <div>
             <label className="text-xs text-gray-400 block mb-1">Competition</label>
             <select

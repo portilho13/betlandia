@@ -19,7 +19,9 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import com.betlandia.odds_calculator.dto.BetPlacedEvent;
 import com.betlandia.odds_calculator.dto.MatchEventDto;
+import com.betlandia.odds_calculator.dto.MatchStatusEvent;
 import com.betlandia.odds_calculator.model.Fixture;
 
 import java.util.HashMap;
@@ -34,63 +36,72 @@ public class KafkaConfig {
 
     @Bean
     public NewTopic oddsUpdates() {
-        return TopicBuilder.name("odds-updates")
-            .partitions(3)
-            .replicas(1)
-            .build();
+        return TopicBuilder.name("odds-updates").partitions(3).replicas(1).build();
     }
-
-    // Fixture consumer
 
     @Bean
     public ConsumerFactory<String, Fixture> fixtureConsumerFactory() {
-        JsonDeserializer<Fixture> deserializer = new JsonDeserializer<>(Fixture.class);
-        deserializer.addTrustedPackages("*");
-        deserializer.setUseTypeHeaders(false);
-
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "odds-calculator");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+        JsonDeserializer<Fixture> des = new JsonDeserializer<>(Fixture.class);
+        des.addTrustedPackages("*");
+        des.setUseTypeHeaders(false);
+        return new DefaultKafkaConsumerFactory<>(consumerProps("odds-calculator"), new StringDeserializer(), des);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Fixture> kafkaListenerContainerFactory(
             ConsumerFactory<String, Fixture> fixtureConsumerFactory) {
-        ConcurrentKafkaListenerContainerFactory<String, Fixture> factory =
-            new ConcurrentKafkaListenerContainerFactory<>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, Fixture>();
         factory.setConsumerFactory(fixtureConsumerFactory);
         return factory;
     }
 
-    // MatchEventDto consumer
-
     @Bean
     public ConsumerFactory<String, MatchEventDto> matchEventConsumerFactory() {
-        JsonDeserializer<MatchEventDto> deserializer = new JsonDeserializer<>(MatchEventDto.class);
-        deserializer.addTrustedPackages("*");
-        deserializer.setUseTypeHeaders(false);
-
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "odds-calculator");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), deserializer);
+        JsonDeserializer<MatchEventDto> des = new JsonDeserializer<>(MatchEventDto.class);
+        des.addTrustedPackages("*");
+        des.setUseTypeHeaders(false);
+        return new DefaultKafkaConsumerFactory<>(consumerProps("odds-calculator"), new StringDeserializer(), des);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, MatchEventDto> matchEventListenerContainerFactory(
             ConsumerFactory<String, MatchEventDto> matchEventConsumerFactory) {
-        ConcurrentKafkaListenerContainerFactory<String, MatchEventDto> factory =
-            new ConcurrentKafkaListenerContainerFactory<>();
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MatchEventDto>();
         factory.setConsumerFactory(matchEventConsumerFactory);
         return factory;
     }
 
-    // Producer
+    @Bean
+    public ConsumerFactory<String, MatchStatusEvent> matchStatusConsumerFactory() {
+        JsonDeserializer<MatchStatusEvent> des = new JsonDeserializer<>(MatchStatusEvent.class);
+        des.addTrustedPackages("*");
+        des.setUseTypeHeaders(false);
+        return new DefaultKafkaConsumerFactory<>(consumerProps("odds-calculator"), new StringDeserializer(), des);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, MatchStatusEvent> matchStatusListenerContainerFactory(
+            ConsumerFactory<String, MatchStatusEvent> matchStatusConsumerFactory) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, MatchStatusEvent>();
+        factory.setConsumerFactory(matchStatusConsumerFactory);
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, BetPlacedEvent> betPlacedConsumerFactory() {
+        JsonDeserializer<BetPlacedEvent> des = new JsonDeserializer<>(BetPlacedEvent.class);
+        des.addTrustedPackages("*");
+        des.setUseTypeHeaders(false);
+        return new DefaultKafkaConsumerFactory<>(consumerProps("odds-calculator"), new StringDeserializer(), des);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, BetPlacedEvent> betPlacedListenerContainerFactory(
+            ConsumerFactory<String, BetPlacedEvent> betPlacedConsumerFactory) {
+        var factory = new ConcurrentKafkaListenerContainerFactory<String, BetPlacedEvent>();
+        factory.setConsumerFactory(betPlacedConsumerFactory);
+        return factory;
+    }
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
@@ -98,11 +109,20 @@ public class KafkaConfig {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(props);
     }
 
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    private Map<String, Object> consumerProps(String groupId) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return props;
     }
 }

@@ -7,22 +7,26 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import com.betlandia.bet_service.dto.Fixture;
+import com.betlandia.bet_service.service.MarketService;
 
 @Component
 public class FixtureConsumer {
+
     private static final Logger log = LoggerFactory.getLogger(FixtureConsumer.class);
 
-    public FixtureConsumer() {
+    private final MarketService marketService;
 
+    public FixtureConsumer(MarketService marketService) {
+        this.marketService = marketService;
     }
 
     @KafkaListener(
         topics = "fixture-registry",
-        groupId = "bet-service"
+        groupId = "bet-service",
+        containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consumeFixtureRegistry(
-        @Payload Fixture fixture
-    ) {
-        log.info("Received fixture {}", fixture.getId());
+    public void consumeFixtureRegistry(@Payload Fixture fixture) {
+        log.info("Received fixture {} — creating markets", fixture.getId());
+        marketService.createMarketsForFixture(fixture.getMatchId());
     }
 }

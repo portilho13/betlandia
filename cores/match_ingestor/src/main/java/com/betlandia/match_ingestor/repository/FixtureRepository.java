@@ -18,7 +18,7 @@ public interface FixtureRepository extends JpaRepository<Fixture, UUID> {
     boolean existsByMatchId(Integer matchId);
     List<Fixture> findByStatus(FixtureStatus status);
     List<Fixture> findByStatusIn(List<FixtureStatus> statuses);
-    Fixture findByMatchId(Integer matchId);
+    java.util.Optional<Fixture> findByMatchId(Integer matchId);
 
     @Modifying
     @Transactional

@@ -5,9 +5,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 @Entity
 @Table(name = "market_odds", schema = "public")
 public class MarketOdds {
@@ -21,8 +18,7 @@ public class MarketOdds {
     private Integer fixtureId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "market_type", nullable = false, columnDefinition = "odds_market_type")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "market_type", nullable = false)
     private OddsMarketType marketType;
 
     @Column(name = "home_odd", nullable = false, precision = 5, scale = 2)

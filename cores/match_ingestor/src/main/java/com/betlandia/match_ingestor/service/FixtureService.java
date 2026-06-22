@@ -1,13 +1,10 @@
 package com.betlandia.match_ingestor.service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
 import org.springframework.stereotype.Service;
 
 import com.betlandia.match_ingestor.client.FootballApiClient;
@@ -20,20 +17,15 @@ import com.betlandia.match_ingestor.model.FixtureStatus;
 import com.betlandia.match_ingestor.repository.FixtureRepository;
 import com.betlandia.match_ingestor.util.Pair;
 
-import jakarta.persistence.EntityNotFoundException;
-
-// Needs Refactor
-
 @Service
 public class FixtureService {
 
+    private static final Logger log = LoggerFactory.getLogger(FixtureService.class);
+
     private final FootballApiClient footballApiClient;
     private final MockApiClient mockApiClient;
-
     private final FixtureRepository matchRepository;
     private final FixtureProducer matchProducer;
-
-    private static final Logger log = LoggerFactory.getLogger(FixtureService.class);
 
     public FixtureService(
         FootballApiClient footballApiClient,
@@ -43,110 +35,106 @@ public class FixtureService {
     ) {
         this.footballApiClient = footballApiClient;
         this.mockApiClient = mockApiClient;
-        
         this.matchRepository = matchRepository;
         this.matchProducer = matchProducer;
     }
-    
+
     public void fetchUpcommingMatches(Pair week, boolean useMockApi) {
+        log.info("Ingesting matches for dates: {} to {}", week.getFriday(), week.getMonday());
 
-        log.info("Ingesting match for dates: {} to {}", week.getFriday(), week.getMonday());
-
-        FootballApiResponseDto dto;
-
-        if (useMockApi) {
-            dto = mockApiClient.fetchMatches(week.getFriday(), week.getMonday());
-        } else {
-            dto = footballApiClient.fetchMatches(week.getFriday(), week.getMonday());
-        }
+        FootballApiResponseDto dto = useMockApi
+            ? mockApiClient.fetchMatches(week.getFriday(), week.getMonday())
+            : footballApiClient.fetchMatches(week.getFriday(), week.getMonday());
 
         dto.matches().forEach(matchDto -> {
             if (matchRepository.existsByMatchId(matchDto.id())) {
-                log.info("Match {} already exists, skipping", matchDto.id());
                 return;
             }
 
             Fixture fixture = new Fixture();
             fixture.setHomeTeam(matchDto.homeTeam().name());
             fixture.setAwayTeam(matchDto.awayTeam().name());
-
-            Instant gameDate = Instant.parse(matchDto.utcDate());
-            fixture.setGameDate(gameDate);
-
+            fixture.setGameDate(Instant.parse(matchDto.utcDate()));
             fixture.setStatus(FixtureStatus.fromString(matchDto.status()));
             fixture.setMatchId(matchDto.id());
 
             Fixture saved = matchRepository.save(fixture);
-
             matchProducer.sendTopic(saved, "fixture-registry");
 
-            log.info("Saved match {} - {} vs {}", saved.getId(), saved.getHomeTeam(), saved.getAwayTeam());
-
+            log.info("Saved fixture {} - {} vs {}", saved.getId(), saved.getHomeTeam(), saved.getAwayTeam());
         });
     }
 
     public void startMatches(boolean useMockApi) {
         List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.SCHEDULED);
+
         for (Fixture match : fixtures) {
             try {
-                MatchDetailDto dto;
+                MatchDetailDto dto = useMockApi
+                    ? mockApiClient.fetchMatchDetails(match.getMatchId())
+                    : footballApiClient.fetchMatchDetails(match.getMatchId());
 
-                if (useMockApi) {
-                    dto = mockApiClient.fetchMatchDetails(match.getMatchId());
-                } else {
-                    dto = footballApiClient.fetchMatchDetails(match.getMatchId());
-                }
+                FixtureStatus newStatus = FixtureStatus.fromString(dto.status());
 
-                if ("IN_PLAY".equals(dto.status())) {
-                    matchRepository.updateStatus(match.getMatchId(), FixtureStatus.IN_PLAY);
-                    log.info("Match {} is now IN_PLAY", match.getMatchId());
+                if (newStatus != match.getStatus()) {
+                    FixtureStatus oldStatus = match.getStatus();
+                    matchRepository.updateStatus(match.getMatchId(), newStatus);
+                    match.setStatus(newStatus);
+                    matchProducer.sendMatchStatusEvent(match, oldStatus, newStatus);
+                    log.info("Match {} status: {} → {}", match.getMatchId(), oldStatus, newStatus);
                 }
 
             } catch (Exception e) {
-                if(Instant.now().isAfter(match.getGameDate())) {
+                if (Instant.now().isAfter(match.getGameDate())) {
+                    FixtureStatus oldStatus = match.getStatus();
                     matchRepository.updateStatus(match.getMatchId(), FixtureStatus.IN_PLAY);
+                    match.setStatus(FixtureStatus.IN_PLAY);
+                    matchProducer.sendMatchStatusEvent(match, oldStatus, FixtureStatus.IN_PLAY);
                 }
             }
         }
     }
 
     public void fetchGameEvents(boolean useMockApi) {
-        List<Fixture> fixtures = matchRepository.findByStatus(FixtureStatus.IN_PLAY);
+        List<Fixture> fixtures = matchRepository.findByStatusIn(
+            List.of(FixtureStatus.IN_PLAY, FixtureStatus.PAUSED)
+        );
 
-        for(Fixture match: fixtures) {
+        if (fixtures.isEmpty()) {
+            return;
+        }
+
+        for (Fixture match : fixtures) {
             try {
-                MatchDetailDto dto;
-                
-                if (useMockApi) {
-                    dto = mockApiClient.fetchMatchDetails(match.getMatchId());
-                } else {
-                    dto = footballApiClient.fetchMatchDetails(match.getMatchId());
-                }
+                MatchDetailDto dto = useMockApi
+                    ? mockApiClient.fetchMatchDetails(match.getMatchId())
+                    : footballApiClient.fetchMatchDetails(match.getMatchId());
 
                 int newHomeScore = dto.score().fullTime().home() != null ? dto.score().fullTime().home() : 0;
                 int newAwayScore = dto.score().fullTime().away() != null ? dto.score().fullTime().away() : 0;
 
-                int homeScore = match.getHomeScore() != null ? match.getHomeScore() : 0;
-                int awayScore = match.getAwayScore() != null ? match.getAwayScore() : 0;
+                int storedHome = match.getHomeScore() != null ? match.getHomeScore() : 0;
+                int storedAway = match.getAwayScore() != null ? match.getAwayScore() : 0;
 
-                boolean homeScored = newHomeScore > homeScore;
-                boolean awayScored = newAwayScore > awayScore;
-
-                if (homeScored || awayScored) {
-                    
-                    log.info("New Event Detected: {}", dto.id());
+                if (newHomeScore > storedHome || newAwayScore > storedAway) {
                     matchProducer.sendMatchEvent(match, newHomeScore, newAwayScore);
-
                     match.setHomeScore(newHomeScore);
                     match.setAwayScore(newAwayScore);
                     matchRepository.save(match);
+                    log.info("Goal detected! Match {} score: {} - {}", match.getMatchId(), newHomeScore, newAwayScore);
+                }
 
-                    log.info("Goal detected! Match {} score: {} - {}", 
-                        match.getMatchId(), newHomeScore, newAwayScore);
+                FixtureStatus apiStatus = FixtureStatus.fromString(dto.status());
+                if (apiStatus != match.getStatus()) {
+                    FixtureStatus oldStatus = match.getStatus();
+                    matchRepository.updateStatus(match.getMatchId(), apiStatus);
+                    match.setStatus(apiStatus);
+                    matchProducer.sendMatchStatusEvent(match, oldStatus, apiStatus);
+                    log.info("Match {} status changed: {} → {}", match.getMatchId(), oldStatus, apiStatus);
                 }
 
             } catch (Exception e) {
-                log.error(e.toString());
+                log.error("Error polling match {}: {}", match.getMatchId(), e.getMessage());
             }
         }
     }

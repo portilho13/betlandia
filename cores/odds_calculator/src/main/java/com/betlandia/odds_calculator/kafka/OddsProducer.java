@@ -5,11 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import com.betlandia.odds_calculator.model.MarketOdds;
+import com.betlandia.odds_calculator.dto.OddsUpdateDto;
 
 @Service
 public class OddsProducer {
     private static final Logger log = LoggerFactory.getLogger(OddsProducer.class);
+    private static final String ODDS_UPDATES_TOPIC = "odds-updates";
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -17,17 +18,14 @@ public class OddsProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendTopic(MarketOdds marketOdds, String topic) {
-        kafkaTemplate.send(topic, String.valueOf(marketOdds.getId()), marketOdds)
+    public void sendOddsUpdate(OddsUpdateDto dto) {
+        kafkaTemplate.send(ODDS_UPDATES_TOPIC, String.valueOf(dto.fixtureId()), dto)
             .whenComplete((result, ex) -> {
                 if (ex != null) {
-                    log.error("Failed to send odds {} to topic {}", marketOdds.getId(), topic, ex);
+                    log.error("Failed to send odds update for fixture {}", dto.fixtureId(), ex);
                 } else {
-                    log.info("Sent odds {} → topic {} partition {}",
-                        marketOdds.getId(),
-                        topic,
-                        result.getRecordMetadata().partition()
-                    );
+                    log.info("Sent odds update for fixture {} → partition {}",
+                        dto.fixtureId(), result.getRecordMetadata().partition());
                 }
             });
     }
