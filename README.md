@@ -1,42 +1,42 @@
 # Betlandia
 
-Plataforma de apostas desportivas em tempo real com arquitetura de microsserviços.
+Real-time sports betting platform built with a microservices architecture.
 
-## Arquitetura
+## Architecture
 
 ```
 Frontend (Next.js :3000)
     │
 API Gateway (Spring Boot :8080) ── JWT Auth, WebSocket, Routing
     │
-    ├── Match Ingestor (:8081) ── Polling de jogos, publica eventos no Kafka
-    ├── Odds Calculator (:8082) ── Calcula odds com modelo Poisson, atualiza em tempo real
-    └── Bet Service (:8083) ── Gestão de apostas, utilizadores, mercados e carteira
+    ├── Match Ingestor (:8081) ── Polls for matches, publishes events to Kafka
+    ├── Odds Calculator (:8082) ── Calculates odds using Poisson model, real-time updates
+    └── Bet Service (:8083) ── Manages bets, users, markets and wallet
     
-Infraestrutura:
-    ├── Kafka (:9092) ── Event streaming entre serviços
-    ├── PostgreSQL (:5432) ── Base de dados principal
-    ├── Redis (:6379) ── Cache
-    └── Cassandra (:9042) ── Dados time-series
+Infrastructure:
+    ├── Kafka (:9092) ── Event streaming between services
+    ├── PostgreSQL (:5432) ── Primary database
+    ├── Redis (:6379) ── Caching layer
+    └── Cassandra (:9042) ── Time-series data
 
-Football API Mock (:3001) ── Simula API externa de futebol com dashboard de controlo
+Football API Mock (:3001) ── Simulates external football API with control dashboard
 ```
 
-## Stack Tecnológica
+## Tech Stack
 
-| Componente | Tecnologia |
+| Component | Technology |
 |---|---|
 | Backend Services | Java 21, Spring Boot 4.0 |
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
 | Mock API | Next.js 16, TypeScript |
-| Base de Dados | PostgreSQL 16 |
+| Database | PostgreSQL 16 |
 | Message Broker | Apache Kafka |
 | Cache | Redis 7 |
-| Containerização | Docker, Docker Compose |
+| Containerization | Docker, Docker Compose |
 
-## Pré-requisitos
+## Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e a correr
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 
 ## Quick Start
 
@@ -44,69 +44,69 @@ Football API Mock (:3001) ── Simula API externa de futebol com dashboard de 
 .\start.ps1
 ```
 
-Ou via batch (duplo clique):
+Or via batch file (double click):
 ```
 start.bat
 ```
 
-O script verifica os pré-requisitos, gera ficheiros necessários, compila todos os serviços e lança a stack completa.
+The script checks prerequisites, generates required files, builds all services and launches the full stack.
 
-### Comandos
+### Commands
 
-| Comando | Descrição |
+| Command | Description |
 |---|---|
-| `.\start.ps1` | Compila e inicia todos os serviços |
-| `.\start.ps1 -Down` | Para todos os containers |
-| `.\start.ps1 -Logs` | Mostra logs em tempo real |
-| `.\start.ps1 -Rebuild` | Rebuild completo sem cache |
+| `.\start.ps1` | Build and start all services |
+| `.\start.ps1 -Down` | Stop all containers |
+| `.\start.ps1 -Logs` | Show real-time logs |
+| `.\start.ps1 -Rebuild` | Full rebuild without cache |
 
 ## URLs
 
-| Serviço | URL |
+| Service | URL |
 |---|---|
 | Frontend | http://localhost:3000 |
 | API Gateway | http://localhost:8080 |
 | Mock API Dashboard | http://localhost:3001/dashboard |
 | Kafka UI | http://localhost:8089 |
 
-## Fluxo de Dados
+## Data Flow
 
-1. O **Match Ingestor** faz polling à Football API Mock a cada 5 segundos e guarda fixtures no PostgreSQL
-2. Publica eventos `fixture-registry` no Kafka
-3. O **Odds Calculator** consome os eventos, calcula odds baseado no histórico H2H e publica `odds-updates`
-4. O **Bet Service** consome `fixture-registry` e cria mercados (MATCH_WINNER, BTTS, OVER_UNDER)
-5. O **API Gateway** consome `odds-updates` e transmite via WebSocket para o frontend
-6. O frontend atualiza as odds em tempo real sem refresh
+1. The **Match Ingestor** polls the Football API Mock every 5 seconds and stores fixtures in PostgreSQL
+2. Publishes `fixture-registry` events to Kafka
+3. The **Odds Calculator** consumes the events, calculates odds based on H2H history and publishes `odds-updates`
+4. The **Bet Service** consumes `fixture-registry` and creates markets (MATCH_WINNER, BTTS, OVER_UNDER)
+5. The **API Gateway** consumes `odds-updates` and broadcasts them via WebSocket to the frontend
+6. The frontend updates odds in real-time without page refresh
 
-## Como Testar
+## How to Test
 
-### Criar jogos
+### Creating Matches
 
-1. Abrir o **Mock API Dashboard** em http://localhost:3001/dashboard/matches
-2. Clicar em **+ Create Match**, definir equipas e data (hoje ou amanhã)
-3. O jogo aparece no frontend automaticamente em ~5 segundos
+1. Open the **Mock API Dashboard** at http://localhost:3001/dashboard/matches
+2. Click **+ Create Match**, set teams and date (today or tomorrow)
+3. The match appears on the frontend automatically within ~5 seconds
 
-### Simular jogos ao vivo
+### Simulating Live Matches
 
-1. No dashboard, clicar num jogo e usar o painel **Simulate Match**
-2. Alterar status para **IN_PLAY**, definir o minuto
-3. Adicionar golos com os botões de cada equipa
-4. Clicar **Finish & Set Winner** para terminar o jogo
+1. In the dashboard, click a match to open the **Simulate Match** panel
+2. Change status to **IN_PLAY**, set the minute
+3. Add goals using each team's buttons
+4. Click **Finish & Set Winner** to end the match
 
-### Apostar
+### Placing Bets
 
-1. Registar/entrar em http://localhost:3000/auth
-2. Novos utilizadores recebem **50€** de saldo inicial
-3. Clicar nas odds de um jogo para adicionar ao boletim
-4. Definir valor da aposta e clicar **Apostar**
-5. Ver apostas em **As minhas apostas** no header
+1. Register/login at http://localhost:3000/auth
+2. New users receive **50€** starting balance
+3. Click on a match's odds to add it to the bet slip
+4. Set the stake and click **Apostar**
+5. View bets under **As minhas apostas** in the header
 
-### Gerir saldo
+### Managing User Balance
 
-1. Abrir http://localhost:3001/dashboard/users
-2. Introduzir valor e clicar **+ Add** para adicionar saldo a um utilizador
+1. Open http://localhost:3001/dashboard/users
+2. Enter an amount and click **+ Add** to top up a user's balance
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 betlandia/
@@ -114,11 +114,11 @@ betlandia/
 ├── start.ps1 / start.bat
 └── cores/
     ├── api_gateway/          # Spring Boot - Routing, Auth, WebSocket
-    ├── match_ingestor/       # Spring Boot - Polling e ingestão de jogos
-    ├── odds_calculator/      # Spring Boot - Cálculo de odds (Poisson)
-    ├── bet-service/          # Spring Boot - Apostas, utilizadores, mercados
-    ├── football_api_mock/    # Next.js - Mock API + Dashboard de controlo
-    └── betlandia-web/        # Next.js - Frontend da plataforma
+    ├── match_ingestor/       # Spring Boot - Match polling and ingestion
+    ├── odds_calculator/      # Spring Boot - Odds calculation (Poisson model)
+    ├── bet-service/          # Spring Boot - Bets, users, markets
+    ├── football_api_mock/    # Next.js - Mock API + Control dashboard
+    └── betlandia-web/        # Next.js - Frontend
 ```
 
 ## Kafka Topics
@@ -132,14 +132,24 @@ betlandia/
 | `bet-placed` | Bet Service | Odds Calculator |
 | `bet-settled` | Bet Service | — |
 
-## Base de Dados
+## Database
 
-Schema gerido automaticamente pelo Hibernate (`ddl-auto=update`).
+Schema managed automatically by Hibernate (`ddl-auto=update`).
 
-**Credenciais:** `betlandia` / `betlandia` / `betlandia` (db/user/pass)
+**Credentials:** `betlandia` / `betlandia` / `betlandia` (db/user/pass)
 
 ```
 PostgreSQL: localhost:5432
 Redis: localhost:6379
 Cassandra: localhost:9042
 ```
+
+## Limitations
+
+- Some features may not be fully functional or may behave unexpectedly under certain conditions.
+- Bet settlement after a match finishes may not trigger automatically in all scenarios.
+- The BTTS and OVER_UNDER market types are created but odds are only calculated for MATCH_WINNER.
+- Cassandra is included in the stack but is not actively integrated with any service.
+- The sidebar sports and competitions navigation is static and not connected to live data.
+- There is no password validation on login — any username generates a valid JWT token.
+- The wallet balance does not update on the header in real-time after placing a bet (requires page reload).
