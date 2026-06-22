@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "name": "Primeira Liga",
+    "code": "PPL",
+    "type": "LEAGUE",
+    "emblem": null,
+    "areaId": 1,
+    "currentSeasonId": 1
+  }
+]

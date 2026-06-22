@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import com.betlandia.match_ingestor.dto.MatchEventDto;
 import com.betlandia.match_ingestor.model.Fixture;
 
 @Configuration
@@ -48,7 +49,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ProducerFactory<String, Fixture> producerFactory() {
+    public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -58,7 +59,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Fixture> kafkaTemplate() {
+    public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
+
 }

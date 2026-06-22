@@ -1,9 +1,8 @@
 package com.betlandia.match_ingestor.dto.external;
 
 public record SeasonDto(
-    int id,
+    Integer id,
     String startDate,
     String endDate,
-    int currentMatchday,
-    String winner
+    Integer currentMatchday
 ) {}

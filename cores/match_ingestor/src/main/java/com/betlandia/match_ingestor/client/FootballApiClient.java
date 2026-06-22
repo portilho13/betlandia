@@ -3,7 +3,8 @@ package com.betlandia.match_ingestor.client;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import com.betlandia.match_ingestor.dto.external.FootballApiResponseDto;
+import com.betlandia.match_ingestor.dto.FootballApiResponseDto;
+import com.betlandia.match_ingestor.dto.external.MatchDetailDto;
 
 @Component
 public class FootballApiClient {
@@ -22,5 +23,12 @@ public class FootballApiClient {
                 .build())
             .retrieve()
             .body(FootballApiResponseDto.class);
+    }
+
+    public MatchDetailDto fetchMatchDetails(Integer id) {
+        return restClient.get()
+            .uri("/matches/{id}", id)
+            .retrieve()
+            .body(MatchDetailDto.class);
     }
 }

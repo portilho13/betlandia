@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.betlandia.match_ingestor.services.FixtureService;
+import com.betlandia.match_ingestor.service.FixtureService;
 import com.betlandia.match_ingestor.util.DateScheduler;
 import com.betlandia.match_ingestor.util.Pair;
 
@@ -23,14 +23,39 @@ public class FixtureScheduler {
         this.dateScheduler = dateScheduler;
     }
 
-    @Scheduled(cron = "0 * * * * *")
+
+    @Scheduled(cron = "0/5 * * * * *")
     public void FetchUpcommingMatches() {
         ArrayList<Pair> dates = dateScheduler.getDateRange();
 
         Pair currentWeek = dates.get(0); // current week in idx 0
         Pair nextWeek = dates.get(1); // next week in idx 1
 
-        matchService.ingestFromApi(currentWeek);
-        matchService.ingestFromApi(nextWeek);
+        matchService.fetchUpcommingMatches(currentWeek, true);
+        matchService.fetchUpcommingMatches(nextWeek, true);
     }
+
+
+    @Scheduled(cron = "0/5 * * * * *")
+    public void FetchLiveEvents() {
+        matchService.fetchGameEvents(true);
+    }
+
+    /*
+
+    @Scheduled(cron = "0/5 * * * * *")
+    public void FetchStartingMatches() {
+        matchService.startMatches(true);
+    }
+
+    */
+
+    /*
+
+    @Scheduled(cron = "0 * * * * *")
+    public void FetchLiveMatches() {
+        matchService.fetchLiveMatch("5c14f78d-95d9-4684-a416-7845f18b82b5", false);
+    }
+
+    */
 }

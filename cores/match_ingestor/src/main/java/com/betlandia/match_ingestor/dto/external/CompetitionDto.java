@@ -1,9 +1,8 @@
 package com.betlandia.match_ingestor.dto.external;
 
 public record CompetitionDto(
-    int id,
+    Integer id,
     String name,
     String code,
-    String type,
-    String emblem
+    String type
 ) {}

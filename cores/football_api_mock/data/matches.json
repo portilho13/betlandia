@@ -1,0 +1,286 @@
+[
+  {
+    "competitionId": 1,
+    "seasonId": 1,
+    "areaId": 1,
+    "utcDate": "2026-05-23T22:59:00.000Z",
+    "status": "IN_PLAY",
+    "minute": 32,
+    "injuryTime": null,
+    "attendance": null,
+    "venue": null,
+    "matchday": 1,
+    "stage": "REGULAR_SEASON",
+    "group": null,
+    "lastUpdated": "2026-05-24T00:24:56.610Z",
+    "homeTeamId": 2,
+    "awayTeamId": 3,
+    "score": {
+      "winner": null,
+      "duration": "REGULAR",
+      "fullTime": {
+        "home": 3,
+        "away": 2
+      },
+      "halfTime": {
+        "home": null,
+        "away": null
+      },
+      "regularTime": {
+        "home": null,
+        "away": null
+      },
+      "extraTime": {
+        "home": null,
+        "away": null
+      },
+      "penalties": {
+        "home": null,
+        "away": null
+      }
+    },
+    "goals": [
+      {
+        "minute": 1,
+        "injuryTime": null,
+        "type": "REGULAR",
+        "team": {
+          "id": 2,
+          "name": "FC Porto"
+        },
+        "scorer": null,
+        "assist": null,
+        "score": {
+          "home": 1,
+          "away": 0
+        }
+      },
+      {
+        "minute": 30,
+        "injuryTime": null,
+        "type": "REGULAR",
+        "team": {
+          "id": 2,
+          "name": "FC Porto"
+        },
+        "scorer": null,
+        "assist": null,
+        "score": {
+          "home": 2,
+          "away": 0
+        }
+      },
+      {
+        "minute": 30,
+        "injuryTime": null,
+        "type": "REGULAR",
+        "team": {
+          "id": 3,
+          "name": "SL Benfica"
+        },
+        "scorer": null,
+        "assist": null,
+        "score": {
+          "home": 2,
+          "away": 1
+        }
+      },
+      {
+        "minute": 32,
+        "injuryTime": null,
+        "type": "REGULAR",
+        "team": {
+          "id": 3,
+          "name": "SL Benfica"
+        },
+        "scorer": null,
+        "assist": null,
+        "score": {
+          "home": 2,
+          "away": 2
+        }
+      },
+      {
+        "minute": "32",
+        "injuryTime": null,
+        "type": "REGULAR",
+        "team": {
+          "id": 2,
+          "name": "FC Porto"
+        },
+        "scorer": null,
+        "assist": null,
+        "score": {
+          "home": 3,
+          "away": 2
+        }
+      }
+    ],
+    "penalties": [],
+    "bookings": [],
+    "substitutions": [],
+    "odds": {
+      "homeWin": null,
+      "draw": null,
+      "awayWin": null
+    },
+    "referees": [],
+    "id": 545771
+  },
+  {
+    "competitionId": 1,
+    "seasonId": 1,
+    "areaId": 1,
+    "utcDate": "2026-06-06T00:22:00.000Z",
+    "status": "SCHEDULED",
+    "minute": null,
+    "injuryTime": null,
+    "attendance": null,
+    "venue": null,
+    "matchday": 1,
+    "stage": "REGULAR_SEASON",
+    "group": null,
+    "lastUpdated": "2026-05-26T00:23:01.086Z",
+    "homeTeamId": 10,
+    "awayTeamId": 2,
+    "score": {
+      "winner": null,
+      "duration": "REGULAR",
+      "fullTime": {
+        "home": null,
+        "away": null
+      },
+      "halfTime": {
+        "home": null,
+        "away": null
+      },
+      "regularTime": {
+        "home": null,
+        "away": null
+      },
+      "extraTime": {
+        "home": null,
+        "away": null
+      },
+      "penalties": {
+        "home": null,
+        "away": null
+      }
+    },
+    "goals": [],
+    "penalties": [],
+    "bookings": [],
+    "substitutions": [],
+    "odds": {
+      "homeWin": null,
+      "draw": null,
+      "awayWin": null
+    },
+    "referees": [],
+    "id": 545711
+  },
+  {
+    "competitionId": 1,
+    "seasonId": 1,
+    "areaId": 1,
+    "utcDate": "2026-06-06T00:23:00.000Z",
+    "status": "SCHEDULED",
+    "minute": null,
+    "injuryTime": null,
+    "attendance": null,
+    "venue": null,
+    "matchday": 1,
+    "stage": "REGULAR_SEASON",
+    "group": null,
+    "lastUpdated": "2026-05-26T00:23:41.315Z",
+    "homeTeamId": 2,
+    "awayTeamId": 8,
+    "score": {
+      "winner": null,
+      "duration": "REGULAR",
+      "fullTime": {
+        "home": null,
+        "away": null
+      },
+      "halfTime": {
+        "home": null,
+        "away": null
+      },
+      "regularTime": {
+        "home": null,
+        "away": null
+      },
+      "extraTime": {
+        "home": null,
+        "away": null
+      },
+      "penalties": {
+        "home": null,
+        "away": null
+      }
+    },
+    "goals": [],
+    "penalties": [],
+    "bookings": [],
+    "substitutions": [],
+    "odds": {
+      "homeWin": null,
+      "draw": null,
+      "awayWin": null
+    },
+    "referees": [],
+    "id": 545723
+  },
+  {
+    "competitionId": 1,
+    "seasonId": 1,
+    "areaId": 1,
+    "utcDate": "2026-06-06T00:26:00.000Z",
+    "status": "SCHEDULED",
+    "minute": null,
+    "injuryTime": null,
+    "attendance": null,
+    "venue": null,
+    "matchday": 1,
+    "stage": "REGULAR_SEASON",
+    "group": null,
+    "lastUpdated": "2026-05-26T00:26:40.093Z",
+    "homeTeamId": 1,
+    "awayTeamId": 2,
+    "score": {
+      "winner": null,
+      "duration": "REGULAR",
+      "fullTime": {
+        "home": null,
+        "away": null
+      },
+      "halfTime": {
+        "home": null,
+        "away": null
+      },
+      "regularTime": {
+        "home": null,
+        "away": null
+      },
+      "extraTime": {
+        "home": null,
+        "away": null
+      },
+      "penalties": {
+        "home": null,
+        "away": null
+      }
+    },
+    "goals": [],
+    "penalties": [],
+    "bookings": [],
+    "substitutions": [],
+    "odds": {
+      "homeWin": null,
+      "draw": null,
+      "awayWin": null
+    },
+    "referees": [],
+    "id": 545734
+  }
+]
